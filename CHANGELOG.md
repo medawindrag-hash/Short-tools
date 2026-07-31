@@ -8,6 +8,76 @@ skill `changelog` (`.claude/skills/changelog/SKILL.md`) pour le gabarit
 
 ## Entrées
 
+### 2026-07-31 — Reddit rendu optionnel dans find_trending.py + doc à jour
+- **Fichier(s):** find_trending.py, README.md
+- **Type:** modification
+- **Changement:** Reddit a fermé l'inscription self-service à son API
+  (confirmé par l'utilisateur : la création d'app "script" sur
+  reddit.com/prefs/apps boucle sur la page "Responsible Builder Policy"
+  sans jamais créer l'app). `find_trending.py` ne bloque plus si
+  `REDDIT_CLIENT_ID`/`REDDIT_CLIENT_SECRET` sont absents : il logue une
+  info sur stderr et continue en mode YouTube uniquement, au lieu de
+  `sys.exit(1)`. README mis à jour (note dans la section find_trending.py
+  et dans "Limites à connaître").
+- **Rollback:** Dans `find_trending.py`, remplacer le bloc :
+  ```python
+  if not youtube_key:
+      print("Erreur : aucune clé API YouTube trouvée. Définissez YOUTUBE_API_KEY ou utilisez --youtube-key.", file=sys.stderr)
+      sys.exit(1)
+
+  subreddits = [s.strip() for s in args.subreddits.split(",") if s.strip()]
+
+  try:
+      youtube_results = fetch_youtube_trending(
+          youtube_key, args.youtube_region, args.youtube_category, args.youtube_max, args.min_comments
+      )
+  except RuntimeError as e:
+      print(f"Erreur : {e}", file=sys.stderr)
+      sys.exit(1)
+
+  reddit_results = []
+  if reddit_client_id and reddit_client_secret:
+      try:
+          reddit_results = fetch_reddit_trending(
+              reddit_client_id, reddit_client_secret, subreddits, args.reddit_limit, args.min_comments
+          )
+      except RuntimeError as e:
+          print(f"Erreur : {e}", file=sys.stderr)
+          sys.exit(1)
+  else:
+      print("Info : identifiants Reddit absents (accès API Reddit fermé en self-service), recherche limitée à YouTube.", file=sys.stderr)
+  ```
+  par :
+  ```python
+  if not youtube_key:
+      print("Erreur : aucune clé API YouTube trouvée. Définissez YOUTUBE_API_KEY ou utilisez --youtube-key.", file=sys.stderr)
+      sys.exit(1)
+  if not reddit_client_id or not reddit_client_secret:
+      print("Erreur : identifiants Reddit manquants. Définissez REDDIT_CLIENT_ID et REDDIT_CLIENT_SECRET, ou utilisez --reddit-client-id/--reddit-client-secret.", file=sys.stderr)
+      sys.exit(1)
+
+  subreddits = [s.strip() for s in args.subreddits.split(",") if s.strip()]
+
+  try:
+      youtube_results = fetch_youtube_trending(
+          youtube_key, args.youtube_region, args.youtube_category, args.youtube_max, args.min_comments
+      )
+  except RuntimeError as e:
+      print(f"Erreur : {e}", file=sys.stderr)
+      sys.exit(1)
+
+  try:
+      reddit_results = fetch_reddit_trending(
+          reddit_client_id, reddit_client_secret, subreddits, args.reddit_limit, args.min_comments
+      )
+  except RuntimeError as e:
+      print(f"Erreur : {e}", file=sys.stderr)
+      sys.exit(1)
+  ```
+  Dans README.md, retirer le paragraphe "⚠️ Reddit a fermé l'accès
+  self-service..." de la section find_trending.py, et retirer le point
+  "**Reddit a fermé l'inscription self-service...**" de "Limites à connaître".
+
 ### 2026-07-20 — Documentation de find_trending.py dans README.md
 - **Fichier(s):** README.md
 - **Type:** modification

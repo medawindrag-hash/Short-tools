@@ -137,9 +137,6 @@ def main():
     if not youtube_key:
         print("Erreur : aucune clé API YouTube trouvée. Définissez YOUTUBE_API_KEY ou utilisez --youtube-key.", file=sys.stderr)
         sys.exit(1)
-    if not reddit_client_id or not reddit_client_secret:
-        print("Erreur : identifiants Reddit manquants. Définissez REDDIT_CLIENT_ID et REDDIT_CLIENT_SECRET, ou utilisez --reddit-client-id/--reddit-client-secret.", file=sys.stderr)
-        sys.exit(1)
 
     subreddits = [s.strip() for s in args.subreddits.split(",") if s.strip()]
 
@@ -151,13 +148,17 @@ def main():
         print(f"Erreur : {e}", file=sys.stderr)
         sys.exit(1)
 
-    try:
-        reddit_results = fetch_reddit_trending(
-            reddit_client_id, reddit_client_secret, subreddits, args.reddit_limit, args.min_comments
-        )
-    except RuntimeError as e:
-        print(f"Erreur : {e}", file=sys.stderr)
-        sys.exit(1)
+    reddit_results = []
+    if reddit_client_id and reddit_client_secret:
+        try:
+            reddit_results = fetch_reddit_trending(
+                reddit_client_id, reddit_client_secret, subreddits, args.reddit_limit, args.min_comments
+            )
+        except RuntimeError as e:
+            print(f"Erreur : {e}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        print("Info : identifiants Reddit absents (accès API Reddit fermé en self-service), recherche limitée à YouTube.", file=sys.stderr)
 
     combined = youtube_results + reddit_results
     combined.sort(key=lambda r: r["comment_count"], reverse=True)

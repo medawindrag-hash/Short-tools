@@ -62,6 +62,10 @@ Chaque candidat contient `source` (`youtube`/`reddit`), `id`, `title`, `url`,
 YouTube, `score`/`subreddit` pour Reddit) — l'`url` est prête à être passée
 à `get_comments.py` ou `get_reddit_comments.py`.
 
+⚠️ Reddit a fermé l'accès self-service à son API (voir "Limites à
+connaître" plus bas) : sans `REDDIT_CLIENT_ID`/`REDDIT_CLIENT_SECRET`, le
+script fonctionne en mode YouTube uniquement (log d'info, pas d'erreur).
+
 ⚠️ Les tendances brutes mélangent contenu drôle et actualité sérieuse : le
 filtre `--min-comments` aide, mais la sélection finale des candidats reste
 à valider avant de lancer le reste du pipeline.
@@ -185,6 +189,13 @@ faciliter le calage avec l'étape audio suivante.
   nécessitent un dossier de candidature recherche approuvé) — le scraping
   violerait leurs conditions d'utilisation, ce n'est donc volontairement pas
   supporté ici.
+- **Reddit a fermé l'inscription self-service à son API** (annonce
+  "Responsible Builder Policy", 2025) : créer une app "script" sur
+  `reddit.com/prefs/apps` ne fonctionne plus pour les nouveaux comptes, une
+  demande d'approbation est désormais nécessaire. `get_reddit_comments.py`
+  et `find_trending.py` restent fonctionnels dès que des identifiants sont
+  obtenus (compte déjà approuvé, ou demande acceptée), mais ne sont pas
+  utilisables en self-service pour l'instant.
 - Le tri "relevance" de YouTube mélange déjà popularité et pertinence ; le script retrie
   ensuite par nombre de likes brut pour privilégier les commentaires les plus drôles/aimés.
   Reddit trie nativement par score ("top").
